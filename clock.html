@@ -39,7 +39,6 @@
     body {
       margin: 0;
       min-height: 100vh;
-      min-height: 100dvh;
       padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
         max(20px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
       background: var(--bg);
@@ -53,7 +52,8 @@
     button { touch-action: manipulation; }
 
     .app {
-      width: min(100%, 1100px);
+      width: 100%;
+      max-width: 1100px;
       margin: 0 auto;
     }
 
@@ -67,6 +67,7 @@
 
     h1 {
       margin: 0;
+      font-size: 1.35rem;
       font-size: clamp(1.15rem, 3vw, 1.65rem);
       letter-spacing: .02em;
     }
@@ -97,7 +98,7 @@
 
     .tabs {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       margin-bottom: 16px;
     }
@@ -105,6 +106,7 @@
     .tab {
       padding: 10px 8px;
       font-weight: 700;
+      font-size: .9rem;
       font-size: clamp(.78rem, 2.4vw, 1rem);
     }
 
@@ -118,6 +120,7 @@
 
     .panel {
       display: none;
+      padding: 22px;
       padding: clamp(18px, 4vw, 34px);
       border: 1px solid var(--border);
       border-radius: 24px;
@@ -130,6 +133,7 @@
     .eyebrow { color: var(--muted); font-weight: 700; letter-spacing: .08em; }
     .clock-time {
       margin: .04em 0;
+      font-size: 17vw;
       font-size: clamp(3.3rem, 17vw, 10rem);
       font-weight: 750;
       font-variant-numeric: tabular-nums;
@@ -138,12 +142,13 @@
       white-space: nowrap;
     }
 
-    .clock-date { margin: 8px 0; font-size: clamp(1.05rem, 3vw, 1.6rem); }
-    .clock-era { margin: 8px 0 0; color: var(--muted); font-size: clamp(1rem, 2.7vw, 1.3rem); }
+    .clock-date { margin: 8px 0; font-size: 1.2rem; font-size: clamp(1.05rem, 3vw, 1.6rem); }
+    .clock-era { margin: 8px 0 0; color: var(--muted); font-size: 1.1rem; font-size: clamp(1rem, 2.7vw, 1.3rem); }
     .section-title { margin: 0 0 18px; font-size: clamp(1.2rem, 3vw, 1.6rem); }
     .timer-display, .stopwatch-display {
       margin: 10px 0 20px;
       text-align: center;
+      font-size: 14vw;
       font-size: clamp(3rem, 14vw, 7rem);
       font-weight: 750;
       line-height: 1.1;
@@ -184,7 +189,8 @@
     .status { min-height: 1.5em; margin: 12px 0 0; color: var(--muted); text-align: center; }
 
     .laps {
-      width: min(100%, 620px);
+      width: 100%;
+      max-width: 620px;
       margin: 22px auto 0;
       padding: 0;
       list-style: none;
@@ -201,7 +207,7 @@
 
     .world-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
       gap: 10px;
       margin-top: 14px;
     }
@@ -215,7 +221,7 @@
 
     .city-name { font-weight: 750; }
     .city-zone { margin-left: 6px; color: var(--muted); font-size: .78rem; overflow-wrap: anywhere; }
-    .city-time { margin-top: 7px; font-size: clamp(1.15rem, 4vw, 1.55rem); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .city-time { margin-top: 7px; font-size: 1.3rem; font-size: clamp(1.15rem, 4vw, 1.55rem); font-weight: 700; font-variant-numeric: tabular-nums; }
     .city-date { margin-top: 3px; color: var(--muted); font-size: .92rem; }
     .subsection { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--border); }
     .form-grid { justify-content: flex-start; }
@@ -236,7 +242,7 @@
     @media (orientation: landscape) and (max-height: 600px) {
       header { margin-bottom: 10px; }
       .panel { padding-block: 16px; }
-      .clock-time { font-size: clamp(3rem, 16vh, 6.5rem); }
+      .clock-time { font-size: 16vh; font-size: clamp(3rem, 16vh, 6.5rem); }
       .clock-date { margin: 4px 0; }
     }
 
@@ -246,6 +252,8 @@
   </style>
 </head>
 <body>
+  <div id="appError" style="display:none; margin:12px auto; max-width:900px; padding:14px; color:#fff; background:#a21d32; border-radius:12px; font:16px sans-serif;"></div>
+  <div id="appError" style="display:none;margin:12px auto;max-width:900px;padding:14px;color:#fff;background:#a21d32;border-radius:12px;font:16px sans-serif;"></div>
   <div class="app">
     <header>
       <h1>おてがる日本時計 Pro</h1>
@@ -340,7 +348,12 @@
   <script>
     "use strict";
 
-    const cities = [
+    window.onerror = function (message, source, line) {
+      var box = document.getElementById("appError");
+      if (box) { box.style.display = "block"; box.textContent = "初期化エラー: " + String(message) + " （行 " + line + "）"; }
+    };
+
+    var cities = [
       { name: "東京", zone: "Asia/Tokyo" },
       { name: "ソウル", zone: "Asia/Seoul" },
       { name: "ロンドン", zone: "Europe/London" },
@@ -350,28 +363,28 @@
       { name: "シドニー", zone: "Australia/Sydney" }
     ];
 
-    const $ = (id) => document.getElementById(id);
-    const two = (n) => String(n).padStart(2, "0");
+    function $(id) { return document.getElementById(id); }
+    function two(n) { return (n < 10 ? "0" : "") + n; }
 
     // 表示に必要な日時フォーマッターは起動時に生成し、ネットワークは使いません。
-    const timeFormatters = new Map();
-    const dateFormatters = new Map();
+    var timeFormatters = Object.create(null);
+    var dateFormatters = Object.create(null);
     function getTimeFormatter(zone) {
-      if (!timeFormatters.has(zone)) {
-        timeFormatters.set(zone, new Intl.DateTimeFormat("ja-JP", {
+      if (!timeFormatters[zone]) {
+        timeFormatters[zone] = new Intl.DateTimeFormat("ja-JP", {
           timeZone: zone, hour: "2-digit", minute: "2-digit", second: "2-digit",
           hourCycle: "h23"
-        }));
+        });
       }
-      return timeFormatters.get(zone);
+      return timeFormatters[zone];
     }
     function getDateFormatter(zone) {
-      if (!dateFormatters.has(zone)) {
-        dateFormatters.set(zone, new Intl.DateTimeFormat("ja-JP", {
+      if (!dateFormatters[zone]) {
+        dateFormatters[zone] = new Intl.DateTimeFormat("ja-JP", {
           timeZone: zone, year: "numeric", month: "long", day: "numeric", weekday: "short"
-        }));
+        });
       }
-      return dateFormatters.get(zone);
+      return dateFormatters[zone];
     }
     function formatTime(date, zone) {
       return getTimeFormatter(zone).format(date);
@@ -381,25 +394,25 @@
     }
     function formatDuration(ms, hundredths) {
       ms = Math.max(0, ms);
-      const centiseconds = Math.floor(ms / 10);
-      const hours = Math.floor(centiseconds / 360000);
-      const minutes = Math.floor(centiseconds / 6000) % 60;
-      const seconds = Math.floor(centiseconds / 100) % 60;
-      const fraction = centiseconds % 100;
+      var centiseconds = Math.floor(ms / 10);
+      var hours = Math.floor(centiseconds / 360000);
+      var minutes = Math.floor(centiseconds / 6000) % 60;
+      var seconds = Math.floor(centiseconds / 100) % 60;
+      var fraction = centiseconds % 100;
       if (hundredths) {
         return `${two(hours)}:${two(minutes)}:${two(seconds)}.${two(fraction)}`;
       }
-      const totalMinutes = Math.floor(ms / 60000);
-      const secs = Math.floor(ms / 1000) % 60;
+      var totalMinutes = Math.floor(ms / 60000);
+      var secs = Math.floor(ms / 1000) % 60;
       return `${two(totalMinutes)}:${two(secs)}`;
     }
 
     // JST時計と和暦
-    const jstDateFormatter = new Intl.DateTimeFormat("ja-JP-u-ca-japanese", {
+    var jstDateFormatter = new Intl.DateTimeFormat("ja-JP-u-ca-japanese", {
       timeZone: "Asia/Tokyo", era: "long", year: "numeric"
     });
     function updateJstClock() {
-      const now = new Date();
+      var now = new Date();
       $("jstTime").textContent = formatTime(now, "Asia/Tokyo");
       $("jstDate").textContent = formatDate(now, "Asia/Tokyo");
       $("jstEra").textContent = jstDateFormatter.format(now);
@@ -408,56 +421,58 @@
     setInterval(updateJstClock, 250);
 
     // タブ切替
-    const tabs = [...document.querySelectorAll('[role="tab"]')];
-    tabs.forEach((tab, index) => {
-      tab.addEventListener("click", () => activateTab(index));
-      tab.addEventListener("keydown", (event) => {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+    tabs.forEach(function (tab, index) {
+      tab.addEventListener("click", function () { activateTab(index); });
+      tab.addEventListener("keydown", function (event) {
         if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
           event.preventDefault();
-          const direction = event.key === "ArrowRight" ? 1 : -1;
-          const next = (index + direction + tabs.length) % tabs.length;
+          var direction = event.key === "ArrowRight" ? 1 : -1;
+          var next = (index + direction + tabs.length) % tabs.length;
           activateTab(next);
           tabs[next].focus();
         }
       });
     });
     function activateTab(index) {
-      tabs.forEach((tab, i) => {
-        const selected = i === index;
+      tabs.forEach(function (tab, i) {
+        var selected = i === index;
         tab.setAttribute("aria-selected", String(selected));
         tab.tabIndex = selected ? 0 : -1;
         $(tab.getAttribute("aria-controls")).classList.toggle("active", selected);
       });
     }
-    tabs.forEach((tab, index) => { tab.tabIndex = index === 0 ? 0 : -1; });
+    tabs.forEach(function (tab, index) { tab.tabIndex = index === 0 ? 0 : -1; });
 
     // テーマ切替（設定は端末内に保存）
-    const themeToggle = $("themeToggle");
+    var themeToggle = $("themeToggle");
     function setTheme(theme) {
       document.body.classList.toggle("light", theme === "light");
       themeToggle.textContent = theme === "light" ? "🌙" : "☀️";
       themeToggle.setAttribute("aria-label", theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え");
       try { localStorage.setItem("otegaru-clock-theme", theme); } catch (_) {}
     }
-    let savedTheme = "dark";
+    var savedTheme = "dark";
     try { savedTheme = localStorage.getItem("otegaru-clock-theme") || "dark"; } catch (_) {}
     setTheme(savedTheme);
-    themeToggle.addEventListener("click", () => {
+    themeToggle.addEventListener("click", function () {
       setTheme(document.body.classList.contains("light") ? "dark" : "light");
     });
 
     // Wake Lock API。未対応・失敗時は安全に案内し、時計等の動作は継続します。
-    let wakeLock = null;
-    let wakeRequested = false;
-    const wakeToggle = $("wakeToggle");
-    async function acquireWakeLock() {
+    var wakeLock = null;
+    var wakeRequested = false;
+    var wakeToggle = $("wakeToggle");
+    function acquireWakeLock() {
       if (!wakeRequested || !("wakeLock" in navigator)) return false;
       try {
-        wakeLock = await navigator.wakeLock.request("screen");
-        wakeLock.addEventListener("release", () => {
+        navigator.wakeLock.request("screen").then(function (lock) {
+        wakeLock = lock;
+        if (wakeLock.addEventListener) wakeLock.addEventListener("release", function () {
           wakeLock = null;
           if (wakeRequested) {
             wakeToggle.title = "画面スリープ防止は一時解除されました";
+            wakeLock = null;
           }
         });
         wakeToggle.textContent = "☀️";
@@ -465,6 +480,7 @@
         wakeToggle.setAttribute("aria-label", "画面スリープ防止を無効にする");
         wakeToggle.title = "画面スリープ防止を有効中";
         return true;
+        }).catch(function () { wakeRequested = false; wakeLock = null; });
       } catch (_) {
         wakeLock = null;
         wakeRequested = false;
@@ -475,11 +491,11 @@
         return false;
       }
     }
-    wakeToggle.addEventListener("click", async () => {
+    wakeToggle.addEventListener("click", function () {
       if (wakeRequested) {
         wakeRequested = false;
         if (wakeLock) {
-          try { await wakeLock.release(); } catch (_) {}
+          try { wakeLock.release(); } catch (_) {}
           wakeLock = null;
         }
         wakeToggle.textContent = "🌙";
@@ -495,25 +511,25 @@
         wakeToggle.setAttribute("aria-label", "画面スリープ防止は非対応です");
         return;
       }
-      await acquireWakeLock();
+      acquireWakeLock();
     });
-    document.addEventListener("visibilitychange", () => {
+    document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "visible" && wakeRequested && !wakeLock) acquireWakeLock();
     });
 
     // タイマー：締切時刻との差分を基準にし、タブ非表示中も正しい残り時間を維持します。
-    let timerRemaining = 0;
-    let timerDeadline = 0;
-    let timerRunning = false;
-    let timerFinished = false;
-    let timerInterval = null;
-    let audioContext = null;
-    let alarmOscillators = [];
-    let alarmGain = null;
+    var timerRemaining = 0;
+    var timerDeadline = 0;
+    var timerRunning = false;
+    var timerFinished = false;
+    var timerInterval = null;
+    var audioContext = null;
+    var alarmOscillators = [];
+    var alarmGain = null;
 
     function readTimerInputs() {
-      const mins = Math.min(999, Math.max(0, parseInt($("timerMinutes").value, 10) || 0));
-      const secs = Math.min(59, Math.max(0, parseInt($("timerSeconds").value, 10) || 0));
+      var mins = Math.min(999, Math.max(0, parseInt($("timerMinutes").value, 10) || 0));
+      var secs = Math.min(59, Math.max(0, parseInt($("timerSeconds").value, 10) || 0));
       $("timerMinutes").value = mins;
       $("timerSeconds").value = secs;
       return (mins * 60 + secs) * 1000;
@@ -527,28 +543,28 @@
       if (alarmGain && audioContext) {
         try { alarmGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.03); } catch (_) {}
       }
-      alarmOscillators.forEach((oscillator) => {
+      alarmOscillators.forEach(function (oscillator) {
         try { oscillator.stop(audioContext.currentTime + 0.15); } catch (_) {}
       });
       alarmOscillators = [];
       $("timerDisplay").classList.remove("finished");
     }
-    async function startAlarm() {
+    function startAlarm() {
       try {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        var AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) {
           $("timerStatus").textContent = "時間になりました（この環境では電子音を再生できません）。";
           return;
         }
         audioContext = audioContext || new AudioContextClass();
-        if (audioContext.state === "suspended") await audioContext.resume();
+        if (audioContext.state === "suspended") audioContext.resume();
         stopAlarm();
         alarmGain = audioContext.createGain();
         alarmGain.gain.value = 0.0001;
         alarmGain.connect(audioContext.destination);
         alarmGain.gain.setTargetAtTime(0.15, audioContext.currentTime, 0.02);
-        [880, 1175].forEach((frequency, index) => {
-          const oscillator = audioContext.createOscillator();
+        [880, 1175].forEach(function (frequency, index) {
+          var oscillator = audioContext.createOscillator();
           oscillator.type = "sine";
           oscillator.frequency.value = frequency;
           oscillator.connect(alarmGain);
@@ -574,7 +590,7 @@
       if (timerRemaining <= 0) finishTimer();
       else paintTimer();
     }
-    $("timerStart").addEventListener("click", async () => {
+    $("timerStart").addEventListener("click", function () {
       if (timerFinished) {
         timerFinished = false;
         stopAlarm();
@@ -587,10 +603,10 @@
         return;
       }
       try {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        var AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (AudioContextClass) {
           audioContext = audioContext || new AudioContextClass();
-          if (audioContext.state === "suspended") await audioContext.resume();
+          if (audioContext.state === "suspended") audioContext.resume();
         }
       } catch (_) {}
       timerDeadline = Date.now() + timerRemaining;
@@ -600,7 +616,7 @@
       timerTick();
       timerInterval = setInterval(timerTick, 100);
     });
-    $("timerPause").addEventListener("click", () => {
+    $("timerPause").addEventListener("click", function () {
       if (!timerRunning) return;
       timerRemaining = Math.max(0, timerDeadline - Date.now());
       timerRunning = false;
@@ -608,7 +624,7 @@
       paintTimer();
       $("timerStatus").textContent = "一時停止中です。";
     });
-    $("timerReset").addEventListener("click", () => {
+    $("timerReset").addEventListener("click", function () {
       timerRunning = false;
       timerFinished = false;
       clearInterval(timerInterval);
@@ -617,12 +633,12 @@
       paintTimer();
       $("timerStatus").textContent = "リセットしました。";
     });
-    $("alarmStop").addEventListener("click", () => {
+    $("alarmStop").addEventListener("click", function () {
       stopAlarm();
       if (timerFinished) $("timerStatus").textContent = "アラームを停止しました。";
     });
-    document.querySelectorAll(".preset").forEach((button) => {
-      button.addEventListener("click", () => {
+    document.querySelectorAll(".preset").forEach(function (button) {
+      button.addEventListener("click", function () {
         timerRunning = false;
         timerFinished = false;
         clearInterval(timerInterval);
@@ -634,8 +650,8 @@
         $("timerStatus").textContent = `${button.textContent}に設定しました。`;
       });
     });
-    ["timerMinutes", "timerSeconds"].forEach((id) => {
-      $(id).addEventListener("input", () => {
+    ["timerMinutes", "timerSeconds"].forEach(function (id) {
+      $(id).addEventListener("input", function () {
         if (!timerRunning && !timerFinished) {
           timerRemaining = readTimerInputs();
           paintTimer();
@@ -646,19 +662,19 @@
     paintTimer();
 
     // ストップウォッチ：開始からの経過時間をDate.now()で差分計算します。
-    let swRunning = false;
-    let swStartedAt = 0;
-    let swElapsed = 0;
-    let swInterval = null;
-    let previousLap = 0;
-    let lapNumber = 0;
+    var swRunning = false;
+    var swStartedAt = 0;
+    var swElapsed = 0;
+    var swInterval = null;
+    var previousLap = 0;
+    var lapNumber = 0;
     function elapsedStopwatch() {
       return swElapsed + (swRunning ? Date.now() - swStartedAt : 0);
     }
     function paintStopwatch() {
       $("stopwatchDisplay").textContent = formatDuration(elapsedStopwatch(), true);
     }
-    $("swToggle").addEventListener("click", () => {
+    $("swToggle").addEventListener("click", function () {
       if (swRunning) {
         swElapsed += Date.now() - swStartedAt;
         swRunning = false;
@@ -674,21 +690,22 @@
       }
       paintStopwatch();
     });
-    $("swLap").addEventListener("click", () => {
+    $("swLap").addEventListener("click", function () {
       if (!swRunning) return;
-      const total = elapsedStopwatch();
-      const split = total - previousLap;
+      var total = elapsedStopwatch();
+      var split = total - previousLap;
       previousLap = total;
       lapNumber++;
-      const li = document.createElement("li");
-      const label = document.createElement("span");
-      const lap = document.createElement("span");
+      var li = document.createElement("li");
+      var label = document.createElement("span");
+      var lap = document.createElement("span");
       label.textContent = `ラップ ${lapNumber} · スプリット ${formatDuration(split, true)}`;
       lap.textContent = formatDuration(total, true);
-      li.append(label, lap);
-      $("lapList").prepend(li);
+      li.appendChild(label);
+      li.appendChild(lap);
+      $("lapList").insertBefore(li, $("lapList").firstChild);
     });
-    $("swReset").addEventListener("click", () => {
+    $("swReset").addEventListener("click", function () {
       swRunning = false;
       clearInterval(swInterval);
       swElapsed = 0;
@@ -696,33 +713,36 @@
       lapNumber = 0;
       $("swToggle").textContent = "スタート";
       $("swLap").disabled = true;
-      $("lapList").replaceChildren();
+      while ($("lapList").firstChild) $("lapList").removeChild($("lapList").firstChild);
       paintStopwatch();
     });
-    document.addEventListener("visibilitychange", () => {
+    document.addEventListener("visibilitychange", function () {
       if (swRunning) paintStopwatch();
     });
     paintStopwatch();
 
     // 都市カード生成
     function cityCard(city, date) {
-      const card = document.createElement("article");
+      var card = document.createElement("article");
       card.className = "city-card";
-      const heading = document.createElement("div");
+      var heading = document.createElement("div");
       heading.innerHTML = `<span class="city-name"></span><span class="city-zone"></span>`;
       heading.querySelector(".city-name").textContent = city.name;
       heading.querySelector(".city-zone").textContent = city.zone;
-      const time = document.createElement("div");
+      var time = document.createElement("div");
       time.className = "city-time";
       time.textContent = formatTime(date, city.zone);
-      const day = document.createElement("div");
+      var day = document.createElement("div");
       day.className = "city-date";
       day.textContent = formatDate(date, city.zone);
-      card.append(heading, time, day);
+      card.appendChild(heading);
+      card.appendChild(time);
+      card.appendChild(day);
       return card;
     }
     function renderCityList(container, date) {
-      container.replaceChildren(...cities.map((city) => cityCard(city, date)));
+      while (container.firstChild) container.removeChild(container.firstChild);
+      cities.forEach(function (city) { container.appendChild(cityCard(city, date)); });
     }
     function updateLiveWorld() {
       renderCityList($("liveWorld"), new Date());
@@ -732,46 +752,48 @@
 
     // 基準都市の現地年月日時分からUTC瞬間を求める。
     // 夏時間切替で曖昧な時刻は早い方、存在しない時刻は「該当なし」とします。
-    const partsFormatterCache = new Map();
+    var partsFormatterCache = Object.create(null);
     function getPartsFormatter(zone) {
-      if (!partsFormatterCache.has(zone)) {
-        partsFormatterCache.set(zone, new Intl.DateTimeFormat("en-CA-u-nu-latn", {
+      if (!partsFormatterCache[zone]) {
+        partsFormatterCache[zone] = new Intl.DateTimeFormat("en-CA-u-nu-latn", {
           timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit",
           hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23"
-        }));
+        });
       }
-      return partsFormatterCache.get(zone);
+      return partsFormatterCache[zone];
     }
     function partsInZone(date, zone) {
-      const result = {};
-      for (const part of getPartsFormatter(zone).formatToParts(date)) {
+      var result = {};
+      var parts = getPartsFormatter(zone).formatToParts(date);
+      for (var partIndex = 0; partIndex < parts.length; partIndex++) {
+        var part = parts[partIndex];
         if (part.type !== "literal") result[part.type] = Number(part.value);
       }
       return result;
     }
     function localDateTimeToInstant(fields, zone) {
-      const targetUTC = Date.UTC(fields.year, fields.month - 1, fields.day, fields.hour, fields.minute, 0);
-      let guess = targetUTC;
-      for (let i = 0; i < 5; i++) {
-        const p = partsInZone(new Date(guess), zone);
-        const representedUTC = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
-        const correction = targetUTC - representedUTC;
+      var targetUTC = Date.UTC(fields.year, fields.month - 1, fields.day, fields.hour, fields.minute, 0);
+      var guess = targetUTC;
+      for (var i = 0; i < 5; i++) {
+        var p = partsInZone(new Date(guess), zone);
+        var representedUTC = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+        var correction = targetUTC - representedUTC;
         if (correction === 0) break;
         guess += correction;
       }
 
-      const candidates = [];
+      var candidates = [];
       // DSTの重複・欠落を正しく判定するため、周囲のUTCオフセット候補を調べます。
-      for (let delta = -3 * 86400000; delta <= 3 * 86400000; delta += 3 * 3600000) {
-        const candidate = targetUTC + delta;
-        const p = partsInZone(new Date(candidate), zone);
-        if (p.year === fields.year && p.month === fields.month && p.day === fields.day &&
-            p.hour === fields.hour && p.minute === fields.minute) {
+      for (var delta = -3 * 86400000; delta <= 3 * 86400000; delta += 3 * 3600000) {
+        var candidate = targetUTC + delta;
+        var p2 = partsInZone(new Date(candidate), zone);
+        if (p2.year === fields.year && p2.month === fields.month && p2.day === fields.day &&
+            p2.hour === fields.hour && p2.minute === fields.minute) {
           candidates.push(candidate);
         }
       }
-      if (candidates.length) return { date: new Date(Math.min(...candidates)), ambiguous: candidates.length > 1 };
-      const p = partsInZone(new Date(guess), zone);
+      if (candidates.length) return { date: new Date(Math.min.apply(Math, candidates)), ambiguous: candidates.length > 1 };
+      var p = partsInZone(new Date(guess), zone);
       if (p.year === fields.year && p.month === fields.month && p.day === fields.day &&
           p.hour === fields.hour && p.minute === fields.minute) {
         return { date: new Date(guess), ambiguous: false };
@@ -779,20 +801,20 @@
       return { date: null, ambiguous: false };
     }
 
-    cities.forEach((city, index) => {
-      const option = document.createElement("option");
+    cities.forEach(function (city, index) {
+      var option = document.createElement("option");
       option.value = city.zone;
       option.textContent = `${city.name}（${city.zone}）`;
-      $("baseCity").append(option);
+      $("baseCity").appendChild(option);
     });
 
-    const simulatorFields = { date: $("baseDate"), hour: $("baseHour"), minute: $("baseMinute") };
+    var simulatorFields = { date: $("baseDate"), hour: $("baseHour"), minute: $("baseMinute") };
     function localDateFields(date, zone) {
-      const p = partsInZone(date, zone);
+      var p = partsInZone(date, zone);
       return { year: p.year, month: p.month, day: p.day, hour: p.hour, minute: p.minute };
     }
     function refreshSimulatorDefaults() {
-      const now = localDateFields(new Date(), $("baseCity").value || "Asia/Tokyo");
+      var now = localDateFields(new Date(), $("baseCity").value || "Asia/Tokyo");
       simulatorFields.date.value = `${now.year}-${two(now.month)}-${two(now.day)}`;
       simulatorFields.hour.value = now.hour;
       simulatorFields.minute.value = now.minute;
@@ -801,21 +823,22 @@
     refreshSimulatorDefaults();
 
     function updateSimulator() {
-      const zone = $("baseCity").value;
-      const dateValue = simulatorFields.date.value;
-      const hour = Number(simulatorFields.hour.value);
-      const minute = Number(simulatorFields.minute.value);
+      var zone = $("baseCity").value;
+      var dateValue = simulatorFields.date.value;
+      var hour = Number(simulatorFields.hour.value);
+      var minute = Number(simulatorFields.minute.value);
       $("simNotice").textContent = "";
       if (!dateValue || !Number.isInteger(hour) || hour < 0 || hour > 23 ||
           !Number.isInteger(minute) || minute < 0 || minute > 59) {
-        $("simWorld").replaceChildren();
+        while ($("simWorld").firstChild) $("simWorld").removeChild($("simWorld").firstChild);
         $("simNotice").textContent = "日付・時・分を正しく入力してください。";
         return;
       }
-      const [year, month, day] = dateValue.split("-").map(Number);
-      const result = localDateTimeToInstant({ year, month, day, hour, minute }, zone);
+      var dateParts = dateValue.split("-");
+      var year = Number(dateParts[0]), month = Number(dateParts[1]), day = Number(dateParts[2]);
+      var result = localDateTimeToInstant({ year: year, month: month, day: day, hour: hour, minute: minute }, zone);
       if (!result.date) {
-        $("simWorld").replaceChildren();
+        while ($("simWorld").firstChild) $("simWorld").removeChild($("simWorld").firstChild);
         $("simNotice").textContent = "この基準都市では夏時間への切替により、その現地時刻が存在しません。別の時刻を選んでください。";
         return;
       }
@@ -824,8 +847,8 @@
       }
       renderCityList($("simWorld"), result.date);
     }
-    ["change", "input"].forEach((eventName) => {
-      $("baseCity").addEventListener(eventName, () => {
+    ["change", "input"].forEach(function (eventName) {
+      $("baseCity").addEventListener(eventName, function () {
         if (eventName === "change") refreshSimulatorDefaults();
         updateSimulator();
       });
@@ -837,3 +860,10 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
