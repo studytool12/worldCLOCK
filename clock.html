@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101827">
+  <title>おてがる日本時計 Pro</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101827;
+      --surface: #192438;
+      --surface-2: #223149;
+      --text: #f4f7fc;
+      --muted: #aab8cc;
+      --accent: #69b7ff;
+      --accent-text: #08203b;
+      --border: #34445d;
+      --danger: #ff6376;
+      --shadow: 0 12px 32px rgba(0, 0, 0, .18);
+    }
+
+    body.light {
+      color-scheme: light;
+      --bg: #f1f5fb;
+      --surface: #fff;
+      --surface-2: #e8eef7;
+      --text: #182337;
+      --muted: #5c6b80;
+      --accent: #146dcc;
+      --accent-text: #fff;
+      --border: #cbd6e5;
+      --danger: #c12743;
+      --shadow: 0 10px 28px rgba(31, 50, 76, .09);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+        max(20px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
+        "Yu Gothic", Meiryo, sans-serif;
+      transition: background .2s, color .2s;
+    }
+
+    button, input, select { font: inherit; }
+    button { touch-action: manipulation; }
+
+    .app {
+      width: min(100%, 1100px);
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 4px 0 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.15rem, 3vw, 1.65rem);
+      letter-spacing: .02em;
+    }
+
+    .header-actions { display: flex; gap: 8px; }
+
+    .icon-button, .tab, .button, .preset {
+      min-height: 48px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform .12s, background .2s, border-color .2s;
+    }
+
+    .icon-button {
+      min-width: 48px;
+      padding: 8px 12px;
+      font-size: 1.15rem;
+    }
+
+    button:active { transform: scale(.97); }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .tab {
+      padding: 10px 8px;
+      font-weight: 700;
+      font-size: clamp(.78rem, 2.4vw, 1rem);
+    }
+
+    .tab[aria-selected="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-text);
+    }
+
+    main { min-height: 55vh; }
+
+    .panel {
+      display: none;
+      padding: clamp(18px, 4vw, 34px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .panel.active { display: block; }
+    .center { text-align: center; }
+    .eyebrow { color: var(--muted); font-weight: 700; letter-spacing: .08em; }
+    .clock-time {
+      margin: .04em 0;
+      font-size: clamp(3.3rem, 17vw, 10rem);
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.08;
+      letter-spacing: -.055em;
+      white-space: nowrap;
+    }
+
+    .clock-date { margin: 8px 0; font-size: clamp(1.05rem, 3vw, 1.6rem); }
+    .clock-era { margin: 8px 0 0; color: var(--muted); font-size: clamp(1rem, 2.7vw, 1.3rem); }
+    .section-title { margin: 0 0 18px; font-size: clamp(1.2rem, 3vw, 1.6rem); }
+    .timer-display, .stopwatch-display {
+      margin: 10px 0 20px;
+      text-align: center;
+      font-size: clamp(3rem, 14vw, 7rem);
+      font-weight: 750;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -.04em;
+    }
+
+    .timer-display.finished { color: var(--danger); animation: alarm-flash .65s infinite alternate; }
+    @keyframes alarm-flash {
+      from { text-shadow: 0 0 0 transparent; }
+      to { text-shadow: 0 0 28px currentColor; }
+    }
+
+    .input-row, .button-row, .preset-row, .form-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: end;
+      justify-content: center;
+    }
+
+    .input-group { display: grid; gap: 6px; color: var(--muted); font-size: .9rem; }
+    input, select {
+      min-height: 48px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .number-input { width: 100px; text-align: center; font-size: 1.1rem; }
+    .button, .preset { padding: 11px 18px; font-weight: 700; }
+    .button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+    .button.danger { color: var(--danger); }
+    .preset-row { margin: 14px 0 20px; }
+    .preset { min-width: 72px; }
+    .status { min-height: 1.5em; margin: 12px 0 0; color: var(--muted); text-align: center; }
+
+    .laps {
+      width: min(100%, 620px);
+      margin: 22px auto 0;
+      padding: 0;
+      list-style: none;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .laps li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 4px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .world-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .city-card {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--bg);
+    }
+
+    .city-name { font-weight: 750; }
+    .city-zone { margin-left: 6px; color: var(--muted); font-size: .78rem; overflow-wrap: anywhere; }
+    .city-time { margin-top: 7px; font-size: clamp(1.15rem, 4vw, 1.55rem); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .city-date { margin-top: 3px; color: var(--muted); font-size: .92rem; }
+    .subsection { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--border); }
+    .form-grid { justify-content: flex-start; }
+    .form-grid input[type="date"] { min-width: 175px; }
+    .form-grid input[type="number"] { width: 92px; }
+    .hint { color: var(--muted); font-size: .9rem; line-height: 1.6; }
+    .notice { min-height: 1.4em; margin: 10px 0 0; color: var(--muted); font-size: .9rem; }
+
+    @media (max-width: 560px) {
+      header { align-items: flex-start; }
+      .header-actions { gap: 6px; }
+      .icon-button { min-width: 44px; min-height: 44px; padding: 7px 9px; }
+      .tabs { gap: 5px; }
+      .tab { min-height: 52px; padding: 7px 3px; border-radius: 11px; line-height: 1.25; }
+      .button-row .button { flex: 1 1 28%; padding-inline: 10px; }
+    }
+
+    @media (orientation: landscape) and (max-height: 600px) {
+      header { margin-bottom: 10px; }
+      .panel { padding-block: 16px; }
+      .clock-time { font-size: clamp(3rem, 16vh, 6.5rem); }
+      .clock-date { margin: 4px 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>おてがる日本時計 Pro</h1>
+      <div class="header-actions">
+        <button class="icon-button" id="themeToggle" type="button" aria-label="ライトモードに切り替え" title="テーマ切替">☀️</button>
+        <button class="icon-button" id="wakeToggle" type="button" aria-pressed="false" aria-label="画面スリープ防止を有効にする" title="画面スリープ防止">🌙</button>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="機能">
+      <button class="tab" role="tab" id="tab-clock" aria-controls="panel-clock" aria-selected="true" type="button">日本時計</button>
+      <button class="tab" role="tab" id="tab-timer" aria-controls="panel-timer" aria-selected="false" type="button">タイマー</button>
+      <button class="tab" role="tab" id="tab-stopwatch" aria-controls="panel-stopwatch" aria-selected="false" type="button">ストップ<br>ウォッチ</button>
+      <button class="tab" role="tab" id="tab-world" aria-controls="panel-world" aria-selected="false" type="button">時差計算</button>
+    </nav>
+
+    <main>
+      <section class="panel active center" id="panel-clock" role="tabpanel" aria-labelledby="tab-clock">
+        <div class="eyebrow">日本標準時 · JST</div>
+        <div class="clock-time" id="jstTime" aria-live="off">--:--:--</div>
+        <div class="clock-date" id="jstDate">----</div>
+        <div class="clock-era" id="jstEra">----</div>
+      </section>
+
+      <section class="panel" id="panel-timer" role="tabpanel" aria-labelledby="tab-timer">
+        <h2 class="section-title">カウントダウン・タイマー</h2>
+        <div class="timer-display" id="timerDisplay" aria-live="polite">00:00</div>
+        <div class="input-row">
+          <label class="input-group">分
+            <input class="number-input" id="timerMinutes" type="number" inputmode="numeric" min="0" max="999" step="1" value="5">
+          </label>
+          <label class="input-group">秒
+            <input class="number-input" id="timerSeconds" type="number" inputmode="numeric" min="0" max="59" step="1" value="0">
+          </label>
+        </div>
+        <div class="preset-row" aria-label="タイマープリセット">
+          <button class="preset" data-minutes="1" type="button">1分</button>
+          <button class="preset" data-minutes="3" type="button">3分</button>
+          <button class="preset" data-minutes="5" type="button">5分</button>
+          <button class="preset" data-minutes="10" type="button">10分</button>
+          <button class="preset" data-minutes="25" type="button">25分</button>
+        </div>
+        <div class="button-row">
+          <button class="button primary" id="timerStart" type="button">スタート</button>
+          <button class="button" id="timerPause" type="button">一時停止</button>
+          <button class="button danger" id="timerReset" type="button">リセット</button>
+          <button class="button" id="alarmStop" type="button">音を止める</button>
+        </div>
+        <p class="status" id="timerStatus" aria-live="polite">時間を設定してスタートしてください。</p>
+      </section>
+
+      <section class="panel" id="panel-stopwatch" role="tabpanel" aria-labelledby="tab-stopwatch">
+        <h2 class="section-title">ストップウォッチ</h2>
+        <div class="stopwatch-display" id="stopwatchDisplay" aria-live="off">00:00.00</div>
+        <div class="button-row">
+          <button class="button primary" id="swToggle" type="button">スタート</button>
+          <button class="button" id="swLap" type="button" disabled>ラップ / スプリット</button>
+          <button class="button danger" id="swReset" type="button">リセット</button>
+        </div>
+        <ol class="laps" id="lapList" aria-label="ラップタイム一覧"></ol>
+      </section>
+
+      <section class="panel" id="panel-world" role="tabpanel" aria-labelledby="tab-world">
+        <h2 class="section-title">オフライン世界時計</h2>
+        <p class="hint">端末内のタイムゾーン情報を使って表示します。ネット接続は不要です。</p>
+        <div class="world-grid" id="liveWorld" aria-label="各都市の現在時刻"></div>
+
+        <div class="subsection">
+          <h2 class="section-title">時差計算シミュレーター</h2>
+          <p class="hint">基準都市の現地日時を入力すると、その瞬間の各都市の日時を表示します。</p>
+          <div class="form-grid">
+            <label class="input-group">基準となる都市
+              <select id="baseCity"></select>
+            </label>
+            <label class="input-group">日付
+              <input id="baseDate" type="date">
+            </label>
+            <label class="input-group">時（0〜23）
+              <input id="baseHour" type="number" min="0" max="23" step="1" inputmode="numeric">
+            </label>
+            <label class="input-group">分（0〜59）
+              <input id="baseMinute" type="number" min="0" max="59" step="1" inputmode="numeric">
+            </label>
+          </div>
+          <p class="notice" id="simNotice" aria-live="polite"></p>
+          <div class="world-grid" id="simWorld" aria-label="入力日時の各都市での時刻"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    "use strict";
+
+    const cities = [
+      { name: "東京", zone: "Asia/Tokyo" },
+      { name: "ソウル", zone: "Asia/Seoul" },
+      { name: "ロンドン", zone: "Europe/London" },
+      { name: "パリ", zone: "Europe/Paris" },
+      { name: "ニューヨーク", zone: "America/New_York" },
+      { name: "ロサンゼルス", zone: "America/Los_Angeles" },
+      { name: "シドニー", zone: "Australia/Sydney" }
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    const two = (n) => String(n).padStart(2, "0");
+
+    // 表示に必要な日時フォーマッターは起動時に生成し、ネットワークは使いません。
+    const timeFormatters = new Map();
+    const dateFormatters = new Map();
+    function getTimeFormatter(zone) {
+      if (!timeFormatters.has(zone)) {
+        timeFormatters.set(zone, new Intl.DateTimeFormat("ja-JP", {
+          timeZone: zone, hour: "2-digit", minute: "2-digit", second: "2-digit",
+          hourCycle: "h23"
+        }));
+      }
+      return timeFormatters.get(zone);
+    }
+    function getDateFormatter(zone) {
+      if (!dateFormatters.has(zone)) {
+        dateFormatters.set(zone, new Intl.DateTimeFormat("ja-JP", {
+          timeZone: zone, year: "numeric", month: "long", day: "numeric", weekday: "short"
+        }));
+      }
+      return dateFormatters.get(zone);
+    }
+    function formatTime(date, zone) {
+      return getTimeFormatter(zone).format(date);
+    }
+    function formatDate(date, zone) {
+      return getDateFormatter(zone).format(date);
+    }
+    function formatDuration(ms, hundredths) {
+      ms = Math.max(0, ms);
+      const centiseconds = Math.floor(ms / 10);
+      const hours = Math.floor(centiseconds / 360000);
+      const minutes = Math.floor(centiseconds / 6000) % 60;
+      const seconds = Math.floor(centiseconds / 100) % 60;
+      const fraction = centiseconds % 100;
+      if (hundredths) {
+        return `${two(hours)}:${two(minutes)}:${two(seconds)}.${two(fraction)}`;
+      }
+      const totalMinutes = Math.floor(ms / 60000);
+      const secs = Math.floor(ms / 1000) % 60;
+      return `${two(totalMinutes)}:${two(secs)}`;
+    }
+
+    // JST時計と和暦
+    const jstDateFormatter = new Intl.DateTimeFormat("ja-JP-u-ca-japanese", {
+      timeZone: "Asia/Tokyo", era: "long", year: "numeric"
+    });
+    function updateJstClock() {
+      const now = new Date();
+      $("jstTime").textContent = formatTime(now, "Asia/Tokyo");
+      $("jstDate").textContent = formatDate(now, "Asia/Tokyo");
+      $("jstEra").textContent = jstDateFormatter.format(now);
+    }
+    updateJstClock();
+    setInterval(updateJstClock, 250);
+
+    // タブ切替
+    const tabs = [...document.querySelectorAll('[role="tab"]')];
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => activateTab(index));
+      tab.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+          event.preventDefault();
+          const direction = event.key === "ArrowRight" ? 1 : -1;
+          const next = (index + direction + tabs.length) % tabs.length;
+          activateTab(next);
+          tabs[next].focus();
+        }
+      });
+    });
+    function activateTab(index) {
+      tabs.forEach((tab, i) => {
+        const selected = i === index;
+        tab.setAttribute("aria-selected", String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        $(tab.getAttribute("aria-controls")).classList.toggle("active", selected);
+      });
+    }
+    tabs.forEach((tab, index) => { tab.tabIndex = index === 0 ? 0 : -1; });
+
+    // テーマ切替（設定は端末内に保存）
+    const themeToggle = $("themeToggle");
+    function setTheme(theme) {
+      document.body.classList.toggle("light", theme === "light");
+      themeToggle.textContent = theme === "light" ? "🌙" : "☀️";
+      themeToggle.setAttribute("aria-label", theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え");
+      try { localStorage.setItem("otegaru-clock-theme", theme); } catch (_) {}
+    }
+    let savedTheme = "dark";
+    try { savedTheme = localStorage.getItem("otegaru-clock-theme") || "dark"; } catch (_) {}
+    setTheme(savedTheme);
+    themeToggle.addEventListener("click", () => {
+      setTheme(document.body.classList.contains("light") ? "dark" : "light");
+    });
+
+    // Wake Lock API。未対応・失敗時は安全に案内し、時計等の動作は継続します。
+    let wakeLock = null;
+    let wakeRequested = false;
+    const wakeToggle = $("wakeToggle");
+    async function acquireWakeLock() {
+      if (!wakeRequested || !("wakeLock" in navigator)) return false;
+      try {
+        wakeLock = await navigator.wakeLock.request("screen");
+        wakeLock.addEventListener("release", () => {
+          wakeLock = null;
+          if (wakeRequested) {
+            wakeToggle.title = "画面スリープ防止は一時解除されました";
+          }
+        });
+        wakeToggle.textContent = "☀️";
+        wakeToggle.setAttribute("aria-pressed", "true");
+        wakeToggle.setAttribute("aria-label", "画面スリープ防止を無効にする");
+        wakeToggle.title = "画面スリープ防止を有効中";
+        return true;
+      } catch (_) {
+        wakeLock = null;
+        wakeRequested = false;
+        wakeToggle.textContent = "🌙";
+        wakeToggle.setAttribute("aria-pressed", "false");
+        wakeToggle.setAttribute("aria-label", "画面スリープ防止を有効にする");
+        wakeToggle.title = "この環境では画面スリープ防止を利用できません";
+        return false;
+      }
+    }
+    wakeToggle.addEventListener("click", async () => {
+      if (wakeRequested) {
+        wakeRequested = false;
+        if (wakeLock) {
+          try { await wakeLock.release(); } catch (_) {}
+          wakeLock = null;
+        }
+        wakeToggle.textContent = "🌙";
+        wakeToggle.setAttribute("aria-pressed", "false");
+        wakeToggle.setAttribute("aria-label", "画面スリープ防止を有効にする");
+        wakeToggle.title = "画面スリープ防止";
+        return;
+      }
+      wakeRequested = true;
+      if (!("wakeLock" in navigator)) {
+        wakeRequested = false;
+        wakeToggle.title = "この環境では画面スリープ防止を利用できません";
+        wakeToggle.setAttribute("aria-label", "画面スリープ防止は非対応です");
+        return;
+      }
+      await acquireWakeLock();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && wakeRequested && !wakeLock) acquireWakeLock();
+    });
+
+    // タイマー：締切時刻との差分を基準にし、タブ非表示中も正しい残り時間を維持します。
+    let timerRemaining = 0;
+    let timerDeadline = 0;
+    let timerRunning = false;
+    let timerFinished = false;
+    let timerInterval = null;
+    let audioContext = null;
+    let alarmOscillators = [];
+    let alarmGain = null;
+
+    function readTimerInputs() {
+      const mins = Math.min(999, Math.max(0, parseInt($("timerMinutes").value, 10) || 0));
+      const secs = Math.min(59, Math.max(0, parseInt($("timerSeconds").value, 10) || 0));
+      $("timerMinutes").value = mins;
+      $("timerSeconds").value = secs;
+      return (mins * 60 + secs) * 1000;
+    }
+    function paintTimer() {
+      if (timerRunning) timerRemaining = Math.max(0, timerDeadline - Date.now());
+      $("timerDisplay").textContent = formatDuration(timerRemaining, false);
+      $("timerDisplay").classList.toggle("finished", timerFinished);
+    }
+    function stopAlarm() {
+      if (alarmGain && audioContext) {
+        try { alarmGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.03); } catch (_) {}
+      }
+      alarmOscillators.forEach((oscillator) => {
+        try { oscillator.stop(audioContext.currentTime + 0.15); } catch (_) {}
+      });
+      alarmOscillators = [];
+      $("timerDisplay").classList.remove("finished");
+    }
+    async function startAlarm() {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+          $("timerStatus").textContent = "時間になりました（この環境では電子音を再生できません）。";
+          return;
+        }
+        audioContext = audioContext || new AudioContextClass();
+        if (audioContext.state === "suspended") await audioContext.resume();
+        stopAlarm();
+        alarmGain = audioContext.createGain();
+        alarmGain.gain.value = 0.0001;
+        alarmGain.connect(audioContext.destination);
+        alarmGain.gain.setTargetAtTime(0.15, audioContext.currentTime, 0.02);
+        [880, 1175].forEach((frequency, index) => {
+          const oscillator = audioContext.createOscillator();
+          oscillator.type = "sine";
+          oscillator.frequency.value = frequency;
+          oscillator.connect(alarmGain);
+          oscillator.start();
+          alarmOscillators.push(oscillator);
+        });
+        $("timerStatus").textContent = "時間です！「音を止める」または「リセット」を押してください。";
+      } catch (_) {
+        $("timerStatus").textContent = "時間になりました（音声を再生できませんでした）。";
+      }
+    }
+    function finishTimer() {
+      timerRunning = false;
+      timerRemaining = 0;
+      timerFinished = true;
+      clearInterval(timerInterval);
+      paintTimer();
+      startAlarm();
+    }
+    function timerTick() {
+      if (!timerRunning) return;
+      timerRemaining = Math.max(0, timerDeadline - Date.now());
+      if (timerRemaining <= 0) finishTimer();
+      else paintTimer();
+    }
+    $("timerStart").addEventListener("click", async () => {
+      if (timerFinished) {
+        timerFinished = false;
+        stopAlarm();
+      }
+      if (timerRunning) return;
+      if (timerRemaining <= 0) timerRemaining = readTimerInputs();
+      if (timerRemaining <= 0) {
+        $("timerStatus").textContent = "1秒以上の時間を設定してください。";
+        paintTimer();
+        return;
+      }
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioContext = audioContext || new AudioContextClass();
+          if (audioContext.state === "suspended") await audioContext.resume();
+        }
+      } catch (_) {}
+      timerDeadline = Date.now() + timerRemaining;
+      timerRunning = true;
+      $("timerStatus").textContent = "カウント中です。";
+      clearInterval(timerInterval);
+      timerTick();
+      timerInterval = setInterval(timerTick, 100);
+    });
+    $("timerPause").addEventListener("click", () => {
+      if (!timerRunning) return;
+      timerRemaining = Math.max(0, timerDeadline - Date.now());
+      timerRunning = false;
+      clearInterval(timerInterval);
+      paintTimer();
+      $("timerStatus").textContent = "一時停止中です。";
+    });
+    $("timerReset").addEventListener("click", () => {
+      timerRunning = false;
+      timerFinished = false;
+      clearInterval(timerInterval);
+      stopAlarm();
+      timerRemaining = readTimerInputs();
+      paintTimer();
+      $("timerStatus").textContent = "リセットしました。";
+    });
+    $("alarmStop").addEventListener("click", () => {
+      stopAlarm();
+      if (timerFinished) $("timerStatus").textContent = "アラームを停止しました。";
+    });
+    document.querySelectorAll(".preset").forEach((button) => {
+      button.addEventListener("click", () => {
+        timerRunning = false;
+        timerFinished = false;
+        clearInterval(timerInterval);
+        stopAlarm();
+        $("timerMinutes").value = button.dataset.minutes;
+        $("timerSeconds").value = 0;
+        timerRemaining = Number(button.dataset.minutes) * 60000;
+        paintTimer();
+        $("timerStatus").textContent = `${button.textContent}に設定しました。`;
+      });
+    });
+    ["timerMinutes", "timerSeconds"].forEach((id) => {
+      $(id).addEventListener("input", () => {
+        if (!timerRunning && !timerFinished) {
+          timerRemaining = readTimerInputs();
+          paintTimer();
+        }
+      });
+    });
+    timerRemaining = readTimerInputs();
+    paintTimer();
+
+    // ストップウォッチ：開始からの経過時間をDate.now()で差分計算します。
+    let swRunning = false;
+    let swStartedAt = 0;
+    let swElapsed = 0;
+    let swInterval = null;
+    let previousLap = 0;
+    let lapNumber = 0;
+    function elapsedStopwatch() {
+      return swElapsed + (swRunning ? Date.now() - swStartedAt : 0);
+    }
+    function paintStopwatch() {
+      $("stopwatchDisplay").textContent = formatDuration(elapsedStopwatch(), true);
+    }
+    $("swToggle").addEventListener("click", () => {
+      if (swRunning) {
+        swElapsed += Date.now() - swStartedAt;
+        swRunning = false;
+        clearInterval(swInterval);
+        $("swToggle").textContent = "スタート";
+        $("swLap").disabled = true;
+      } else {
+        swStartedAt = Date.now();
+        swRunning = true;
+        swInterval = setInterval(paintStopwatch, 10);
+        $("swToggle").textContent = "ストップ";
+        $("swLap").disabled = false;
+      }
+      paintStopwatch();
+    });
+    $("swLap").addEventListener("click", () => {
+      if (!swRunning) return;
+      const total = elapsedStopwatch();
+      const split = total - previousLap;
+      previousLap = total;
+      lapNumber++;
+      const li = document.createElement("li");
+      const label = document.createElement("span");
+      const lap = document.createElement("span");
+      label.textContent = `ラップ ${lapNumber} · スプリット ${formatDuration(split, true)}`;
+      lap.textContent = formatDuration(total, true);
+      li.append(label, lap);
+      $("lapList").prepend(li);
+    });
+    $("swReset").addEventListener("click", () => {
+      swRunning = false;
+      clearInterval(swInterval);
+      swElapsed = 0;
+      previousLap = 0;
+      lapNumber = 0;
+      $("swToggle").textContent = "スタート";
+      $("swLap").disabled = true;
+      $("lapList").replaceChildren();
+      paintStopwatch();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (swRunning) paintStopwatch();
+    });
+    paintStopwatch();
+
+    // 都市カード生成
+    function cityCard(city, date) {
+      const card = document.createElement("article");
+      card.className = "city-card";
+      const heading = document.createElement("div");
+      heading.innerHTML = `<span class="city-name"></span><span class="city-zone"></span>`;
+      heading.querySelector(".city-name").textContent = city.name;
+      heading.querySelector(".city-zone").textContent = city.zone;
+      const time = document.createElement("div");
+      time.className = "city-time";
+      time.textContent = formatTime(date, city.zone);
+      const day = document.createElement("div");
+      day.className = "city-date";
+      day.textContent = formatDate(date, city.zone);
+      card.append(heading, time, day);
+      return card;
+    }
+    function renderCityList(container, date) {
+      container.replaceChildren(...cities.map((city) => cityCard(city, date)));
+    }
+    function updateLiveWorld() {
+      renderCityList($("liveWorld"), new Date());
+    }
+    updateLiveWorld();
+    setInterval(updateLiveWorld, 1000);
+
+    // 基準都市の現地年月日時分からUTC瞬間を求める。
+    // 夏時間切替で曖昧な時刻は早い方、存在しない時刻は「該当なし」とします。
+    const partsFormatterCache = new Map();
+    function getPartsFormatter(zone) {
+      if (!partsFormatterCache.has(zone)) {
+        partsFormatterCache.set(zone, new Intl.DateTimeFormat("en-CA-u-nu-latn", {
+          timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23"
+        }));
+      }
+      return partsFormatterCache.get(zone);
+    }
+    function partsInZone(date, zone) {
+      const result = {};
+      for (const part of getPartsFormatter(zone).formatToParts(date)) {
+        if (part.type !== "literal") result[part.type] = Number(part.value);
+      }
+      return result;
+    }
+    function localDateTimeToInstant(fields, zone) {
+      const targetUTC = Date.UTC(fields.year, fields.month - 1, fields.day, fields.hour, fields.minute, 0);
+      let guess = targetUTC;
+      for (let i = 0; i < 5; i++) {
+        const p = partsInZone(new Date(guess), zone);
+        const representedUTC = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+        const correction = targetUTC - representedUTC;
+        if (correction === 0) break;
+        guess += correction;
+      }
+
+      const candidates = [];
+      // DSTの重複・欠落を正しく判定するため、周囲のUTCオフセット候補を調べます。
+      for (let delta = -3 * 86400000; delta <= 3 * 86400000; delta += 3 * 3600000) {
+        const candidate = targetUTC + delta;
+        const p = partsInZone(new Date(candidate), zone);
+        if (p.year === fields.year && p.month === fields.month && p.day === fields.day &&
+            p.hour === fields.hour && p.minute === fields.minute) {
+          candidates.push(candidate);
+        }
+      }
+      if (candidates.length) return { date: new Date(Math.min(...candidates)), ambiguous: candidates.length > 1 };
+      const p = partsInZone(new Date(guess), zone);
+      if (p.year === fields.year && p.month === fields.month && p.day === fields.day &&
+          p.hour === fields.hour && p.minute === fields.minute) {
+        return { date: new Date(guess), ambiguous: false };
+      }
+      return { date: null, ambiguous: false };
+    }
+
+    cities.forEach((city, index) => {
+      const option = document.createElement("option");
+      option.value = city.zone;
+      option.textContent = `${city.name}（${city.zone}）`;
+      $("baseCity").append(option);
+    });
+
+    const simulatorFields = { date: $("baseDate"), hour: $("baseHour"), minute: $("baseMinute") };
+    function localDateFields(date, zone) {
+      const p = partsInZone(date, zone);
+      return { year: p.year, month: p.month, day: p.day, hour: p.hour, minute: p.minute };
+    }
+    function refreshSimulatorDefaults() {
+      const now = localDateFields(new Date(), $("baseCity").value || "Asia/Tokyo");
+      simulatorFields.date.value = `${now.year}-${two(now.month)}-${two(now.day)}`;
+      simulatorFields.hour.value = now.hour;
+      simulatorFields.minute.value = now.minute;
+    }
+    $("baseCity").value = "Asia/Tokyo";
+    refreshSimulatorDefaults();
+
+    function updateSimulator() {
+      const zone = $("baseCity").value;
+      const dateValue = simulatorFields.date.value;
+      const hour = Number(simulatorFields.hour.value);
+      const minute = Number(simulatorFields.minute.value);
+      $("simNotice").textContent = "";
+      if (!dateValue || !Number.isInteger(hour) || hour < 0 || hour > 23 ||
+          !Number.isInteger(minute) || minute < 0 || minute > 59) {
+        $("simWorld").replaceChildren();
+        $("simNotice").textContent = "日付・時・分を正しく入力してください。";
+        return;
+      }
+      const [year, month, day] = dateValue.split("-").map(Number);
+      const result = localDateTimeToInstant({ year, month, day, hour, minute }, zone);
+      if (!result.date) {
+        $("simWorld").replaceChildren();
+        $("simNotice").textContent = "この基準都市では夏時間への切替により、その現地時刻が存在しません。別の時刻を選んでください。";
+        return;
+      }
+      if (result.ambiguous) {
+        $("simNotice").textContent = "この現地時刻は夏時間終了時に2回発生します。早い方の時刻を使って計算しました。";
+      }
+      renderCityList($("simWorld"), result.date);
+    }
+    ["change", "input"].forEach((eventName) => {
+      $("baseCity").addEventListener(eventName, () => {
+        if (eventName === "change") refreshSimulatorDefaults();
+        updateSimulator();
+      });
+      simulatorFields.date.addEventListener(eventName, updateSimulator);
+      simulatorFields.hour.addEventListener(eventName, updateSimulator);
+      simulatorFields.minute.addEventListener(eventName, updateSimulator);
+    });
+    updateSimulator();
+  </script>
+</body>
+</html>
